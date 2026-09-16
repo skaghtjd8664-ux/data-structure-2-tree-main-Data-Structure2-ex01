@@ -128,10 +128,10 @@ int check_tree(const char *str)
 
 void print_tree(const char *str)
 {
-    int depth = 0;     // 현재 출력 중인 노드의 계층 깊이(들여쓰기 단계)
     int len = strlen(str);
-
-    printf("\n");
+    int depth = 0;
+    int has_sibling[100] = {0}; //각 깊이별로 해당 레벨에 처리할 형제 노드가 남아있는지 기록하는 배열
+    
     for (int i = 0; i < len; i++)
     {
         char c = str[i];
@@ -140,20 +140,47 @@ void print_tree(const char *str)
 
         if (c >= 'A' && c <= 'Z')
         {
-            if (depth > 0) {
-                for (int d = 0; d < depth - 1; d++)
-                    printf("    ");
-                printf("+---");
+            if (depth == 0)
+            {
+                printf("%c\n", c);
             }
-            printf("%c\n", c);
+            else
+            {
+                for (int d = 0; d < depth - 1; d++)
+                {
+                    if (has_sibling[d])
+                        printf("|   ");
+                    else
+                        printf("    ");
+                }
+                printf("+---%c\n", c);
+            }
         }
         else if (c == '(')
         {
             depth++;
+            int comma_count = 0;
+            int bracket_level = 0;
+            for (int j = i; j < len; j++)
+            {
+                if (str[j] == '(') bracket_level++;
+                else if (str[j] == ')') bracket_level--;
+                else if (str[j] == ',' && bracket_level == depth) comma_count++;
+                if (bracket_level < depth - 1) break;
+            }
+            has_sibling[depth - 1] = (comma_count > 0) ? 1 : 0;
+        }
+        else if (c == ',')
+        {
+            has_sibling[depth - 1] = 1; 
         }
         else if (c == ')')
         {
             depth--;
+            if (depth >= 0)
+            {
+                has_sibling[depth] = 0;
+            }
         }
     }
 }
