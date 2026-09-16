@@ -199,8 +199,7 @@ int main(void) {
         return 1;
     }
     printf("유효한 트리 괄호 표기법입니다.\n");
-
-    /* 통합 스택 선언 및 초기화 */
+    
     TreeStack tstack;
     tree_stack_init(&tstack);
 
@@ -218,7 +217,6 @@ int main(void) {
     char last_node = '\0';           // 직전에 읽은 노드가 무엇인지 기억하는 변수
     int len = strlen(input);
 
-    /* 문자열을 순차적으로 스캔하며 각종 트리 정보 실시간 계산 */
     for (int i = 0; i < len; i++)
     {
         char c = input[i];
@@ -276,7 +274,6 @@ int main(void) {
     int leaf_nodes = total_nodes - non_leaf_nodes; // 전체 노드 수에서 비단말 노드 수를 뺀 단말 노드 수
     children_of_C[child_count_C] = '\0';
 
-    /* 결과 출력 */
     printf("\n=== 트리 정보 출력 ===\n");
     printf("- 전체 노드의 수: %d\n", total_nodes);
     printf("- 단말 노드의 수: %d\n", leaf_nodes);
