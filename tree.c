@@ -1,15 +1,12 @@
 #include <stdio.h>
 #include <string.h>
 
-#define MAX_LEN   1000
-#define MAX_DEPTH 100
-
 typedef struct
 {
-    char node_data[MAX_DEPTH];
-    int node_top;
-    int counter_data[MAX_DEPTH];
-    int counter_top;
+    char node_data[100];    // 스택에 쌓이는 영문 대문자 노드 문자들을 저장하는 배열
+    int  node_top;                // node_data 배열의 최상단(Top) 인덱스 (초깃값: -1)
+    int  counter_data[100]; // 괄호 중첩 단계별 자식 노드의 수(차수)를 기록하는 배열
+    int  counter_top;             // counter_data 배열의 최상단(Top) 인덱스 (이 깊이가 트리의 높이가 됨)
 } TreeStack;
 
 void tree_stack_init(TreeStack *s)
@@ -45,6 +42,7 @@ char node_peek(TreeStack *s)
     return s->node_data[s->node_top];
 }
 
+/* CounterStack 관련 메서드 */
 int counter_is_empty(TreeStack *s) 
 {
     return s->counter_top < 0;
@@ -77,15 +75,16 @@ int counter_depth(TreeStack *s)
     return s->counter_top + 1;
 }
 
+/* 유효성 검사 함수: 입력된 문자열이 괄호 표기법 규칙에 맞는지 검증 */
 int check_tree(const char *str)
 {
     int len = strlen(str);
     if (len == 0)
         return 0;
 
-    int bracket_count = 0;
-    int expect_node = 1;
-    int expect_delim_or_bracket = 0;
+    int bracket_count = 0;           // 괄호의 중첩 상태를 추적하는 카운터 (여는 괄호 +1, 닫는 괄호 -1)
+    int expect_node = 1;             // 다음에 반드시 노드(알파벳 대문자)가 나와야 하는지 여부 (플래그)
+    int expect_delim_or_bracket = 0; // 노드 직후이므로 콤마나 괄호가 와야 하는지 여부 (플래그)
 
     for (int i = 0; i < len; i++)
     {
@@ -129,19 +128,19 @@ int check_tree(const char *str)
 
 void print_tree(const char *str)
 {
-    printf("\n=== 계층형 트리 출력 ===\n");
-    int depth = 0;
+    int depth = 0;     // 현재 출력 중인 노드의 계층 깊이(들여쓰기 단계)
     int len = strlen(str);
 
+    printf("\n");
     for (int i = 0; i < len; i++)
     {
         char c = str[i];
         if (c == ' ' || c == '\r' || c == '\n')
             continue;
+
         if (c >= 'A' && c <= 'Z')
         {
-            if (depth > 0)
-            {
+            if (depth > 0) {
                 for (int d = 0; d < depth - 1; d++)
                     printf("    ");
                 printf("+---");
@@ -149,18 +148,23 @@ void print_tree(const char *str)
             printf("%c\n", c);
         }
         else if (c == '(')
+        {
             depth++;
+        }
         else if (c == ')')
+        {
             depth--;
+        }
     }
 }
 
 int main(void) {
-    char input[MAX_LEN];
+    char input[100];
 
     printf("트리 괄호 표기법 입력: ");
-    if (fgets(input, sizeof(input), stdin) != NULL)
+    if (fgets(input, sizeof(input), stdin) != NULL){
         input[strcspn(input, "\r\n")] = '\0';
+    }
 
     if (!check_tree(input))
     {
@@ -169,23 +173,25 @@ int main(void) {
     }
     printf("유효한 트리 괄호 표기법입니다.\n");
 
+    /* 통합 스택 선언 및 초기화 */
     TreeStack tstack;
     tree_stack_init(&tstack);
 
-    int total_nodes = 0;
-    int non_leaf_nodes = 0;
-    int max_height = 0;
-    int max_degree = 0;
+    int total_nodes = 0;    // 전체 노드(알파벳 대문자)의 총 개수
+    int non_leaf_nodes = 0; // 비단말 노드(자식을 가지는 노드)의 총 개수
+    int max_height = 0;     // 트리의 최대 높이(Height)
+    int max_degree = 0;     // 트리의 최대 차수(Degree, 모든 노드의 자식 수 중 최댓값)
 
-    char parent_of_C = '\0';
-    char children_of_C[50];
-    int  child_count_C = 0;
-    int  capturing_children_of_C = 0;
-    int  C_bracket_depth = -1;
+    char parent_of_C = '\0';         // 노드 C의 부모 노드 이름
+    char children_of_C[50];          // 노드 C의 자식 노드들을 저장하는 배열
+    int  child_count_C = 0;          // 노드 C가 가진 자식 노드의 개수
+    int  capturing_children_of_C = 0;// 현재 C의 자식을 수집하는 구간인지 판별하는 플래그
+    int  C_bracket_depth = -1;       // 노드 C가 속한 서브트리의 괄호 깊이 기준점
 
-    char last_node = '\0';
+    char last_node = '\0';           // 직전에 읽은 노드가 무엇인지 기억하는 변수
     int len = strlen(input);
 
+    /* 문자열을 순차적으로 스캔하며 각종 트리 정보 실시간 계산 */
     for (int i = 0; i < len; i++)
     {
         char c = input[i];
@@ -196,10 +202,12 @@ int main(void) {
             total_nodes++;
             last_node = c;
 
+            /* 현재 노드가 'C'이고 상위 노드가 존재한다면 직전 노드가 부모임 */
             if (!node_is_empty(&tstack) && c == 'C')
                 parent_of_C = node_peek(&tstack);
             node_push(&tstack, c);
 
+            /* 노드 C의 자식 수집 구간일 때, 정확히 직계 자식 레벨의 노드만 수집 */
             if (capturing_children_of_C && counter_depth(&tstack) == C_bracket_depth + 1)
                 children_of_C[child_count_C++] = c;
         }
@@ -211,6 +219,7 @@ int main(void) {
             if (counter_depth(&tstack) > max_height)
                 max_height = counter_depth(&tstack);
             
+            /* 직전에 읽은 노드가 'C'였다면 자식 수집 시작 지점으로 설정 */
             if (last_node == 'C')
             {
                 capturing_children_of_C = 1;
@@ -221,6 +230,7 @@ int main(void) {
         else if (c == ',')
         {
             counter_increment_top(&tstack);
+            /* 핵심: 형제 노드로 넘어갈 때 직전 형제 노드를 스택에서 제거하여 올바른 부모 관계 유지 */
             node_pop(&tstack);   
         }
         else if (c == ')')
@@ -228,6 +238,7 @@ int main(void) {
             int current_degree = counter_pop(&tstack);
             if (current_degree > max_degree) max_degree = current_degree;
 
+            /* 노드 C의 자식 수집 범위가 끝나는 괄호 닫기 지점 감지 */
             if (capturing_children_of_C && counter_depth(&tstack) == C_bracket_depth)
                 capturing_children_of_C = 0;
             node_pop(&tstack);
@@ -235,9 +246,10 @@ int main(void) {
         }
     }
 
-    int leaf_nodes = total_nodes - non_leaf_nodes;
+    int leaf_nodes = total_nodes - non_leaf_nodes; // 전체 노드 수에서 비단말 노드 수를 뺀 단말 노드 수
     children_of_C[child_count_C] = '\0';
 
+    /* 결과 출력 */
     printf("\n=== 트리 정보 출력 ===\n");
     printf("- 전체 노드의 수: %d\n", total_nodes);
     printf("- 단말 노드의 수: %d\n", leaf_nodes);
