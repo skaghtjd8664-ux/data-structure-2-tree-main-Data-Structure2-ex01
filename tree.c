@@ -3,10 +3,10 @@
 
 typedef struct
 {
-    char node_data[100];    // 스택에 쌓이는 영문 대문자 노드 문자들을 저장하는 배열
-    int  node_top;                // node_data 배열의 최상단(Top) 인덱스 (초깃값: -1)
-    int  counter_data[100]; // 괄호 중첩 단계별 자식 노드의 수(차수)를 기록하는 배열
-    int  counter_top;             // counter_data 배열의 최상단(Top) 인덱스 (이 깊이가 트리의 높이가 됨)
+    char node_data[100];
+    int  node_top;
+    int  counter_data[100];
+    int  counter_top;
 } TreeStack;
 
 void tree_stack_init(TreeStack *s)
@@ -42,7 +42,6 @@ char node_peek(TreeStack *s)
     return s->node_data[s->node_top];
 }
 
-/* CounterStack 관련 메서드 */
 int counter_is_empty(TreeStack *s) 
 {
     return s->counter_top < 0;
@@ -83,8 +82,8 @@ int check_tree(const char *str)
         return 0;
 
     int bracket_count = 0;           // 괄호의 중첩 상태를 추적하는 카운터 (여는 괄호 +1, 닫는 괄호 -1)
-    int expect_node = 1;             // 다음에 반드시 노드(알파벳 대문자)가 나와야 하는지 여부 (플래그)
-    int expect_delim_or_bracket = 0; // 노드 직후이므로 콤마나 괄호가 와야 하는지 여부 (플래그)
+    int expect_node = 1;             // 다음에 반드시 노드(알파벳 대문자)가 나와야 하는지 여부
+    int expect_delim_or_bracket = 0; // 노드 직후이므로 콤마나 괄호가 와야 하는지 여부
 
     for (int i = 0; i < len; i++)
     {
@@ -203,10 +202,10 @@ int main(void) {
     TreeStack tstack;
     tree_stack_init(&tstack);
 
-    int total_nodes = 0;    // 전체 노드(알파벳 대문자)의 총 개수
-    int non_leaf_nodes = 0; // 비단말 노드(자식을 가지는 노드)의 총 개수
-    int max_height = 0;     // 트리의 최대 높이(Height)
-    int max_degree = 0;     // 트리의 최대 차수(Degree, 모든 노드의 자식 수 중 최댓값)
+    int total_nodes = 0;    // 전체 노드의 총 개수
+    int non_leaf_nodes = 0; // 비단말 노드의 총 개수
+    int max_height = 0;     // 트리의 최대 높이
+    int max_degree = 0;     // 트리의 최대 차수
 
     char parent_of_C = '\0';         // 노드 C의 부모 노드 이름
     char children_of_C[50];          // 노드 C의 자식 노드들을 저장하는 배열
@@ -255,7 +254,7 @@ int main(void) {
         else if (c == ',')
         {
             counter_increment_top(&tstack);
-            /* 핵심: 형제 노드로 넘어갈 때 직전 형제 노드를 스택에서 제거하여 올바른 부모 관계 유지 */
+            /* 형제 노드로 넘어갈 때 직전 형제 노드를 스택에서 제거하여 올바른 부모 관계 유지 */
             node_pop(&tstack);   
         }
         else if (c == ')')
@@ -271,7 +270,7 @@ int main(void) {
         }
     }
 
-    int leaf_nodes = total_nodes - non_leaf_nodes; // 전체 노드 수에서 비단말 노드 수를 뺀 단말 노드 수
+    int leaf_nodes = total_nodes - non_leaf_nodes;
     children_of_C[child_count_C] = '\0';
 
     printf("\n=== 트리 정보 출력 ===\n");
